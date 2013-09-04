@@ -1,0 +1,18 @@
+#{extends 'main.html' /}
+#{set title:'Heroku OAuth Test' /}
+<h1>Detail of ${objectName}</h1>
+<div>
+	<a href="/">Return to index</a>
+</div>
+<table border="1">
+	<tr>
+		<th>Name</th>
+		<th>Value</th>
+	</tr>
+	#{list items:item.keys(), as: "key"}
+		<tr>
+			<th>${key}</th>
+			<td>${item.getAsString(key)}</td>
+		</tr>
+	#{/list}
+</table>

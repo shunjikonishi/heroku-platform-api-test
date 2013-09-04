@@ -1,0 +1,23 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                                       Application.index
+*       /event/register                         Application.register
+*       /event/cancel                           Application.cancel
+GET     /event/{id}                             Application.event
+GET     /login                                  Application.login
+
+
+# Ignore favicon requests
+GET     /favicon.ico                            staticFile:public/images/favicon.ico
+
+# Map static resources from the /app/public folder to the /public path
+GET     /public/                                staticDir:public
+GET     /assets/                                staticDir:public/assets
+
+# Catch all
+*       /{controller}/{action}                  {controller}.{action}
+
+

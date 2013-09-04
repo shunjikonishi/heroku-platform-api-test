@@ -1,0 +1,74 @@
+#{extends 'main.html' /}
+#{set title:'Heroku OAuth Test' /}
+<script>
+$(function() {
+	var logined = ${api != null};
+	if (logined) {
+		$("#current-scope").append(sessionStorage.getItem("heroku-scope"));
+	}
+	var login = $("#login").click(function() {
+		var scope = $(":checkbox:checked");
+		if (scope.length == 0) {
+			alert("Select at least one scope");
+			return false;
+		}
+		var str = "";
+		for (var i=0; i<scope.length; i++) {
+			if (i != 0) {
+				str += "%20";
+			}
+			str += $(scope[i]).val();
+		}
+		sessionStorage.setItem("heroku-scope", str.replace(/%20/g, ", "));
+		var url = login.attr("href") + "&scope=" + str;
+		login.attr("href", url);
+		return true;
+	});
+})
+</script>
+<h1>Heroku OAuth Test</h1>
+#{if message != null}
+<div style="color:red;">
+	Message: ${message}
+</div>
+<hr>
+#{/if}
+#{if api != null}
+<div>
+	<h2>Login Account</h2>
+	<div>${api.getLoginedEmail()}</div>
+	<hr>
+	<h2>Scope</h2>
+	<div id="current-scope"></div>
+	<hr>
+	<h2>RateLimit</h2>
+	<div>${api.getRateLimitRemaining()}</div>
+	<hr>
+	<h2>Api</h2>
+	<ul>
+		<li><a href="/application/account">Account information</a></li>
+		<li><a href="/application/apps">Apps</a></li>
+		<li><a href="/application/addons?app=flect-panda">Addons</a></li>
+		<li><a href="/application/addonservices">AddonServices</a></li>
+		<li><a href="/application/reset">Reset</a></li>
+	</ul>
+</div>
+#{/if}
+#{else}
+<div>
+	<h2>Scope</h2>
+	<input type="checkbox" name="scope" value="global">Global
+	<input type="checkbox" name="scope" value="identity">Identity
+	<input type="checkbox" name="scope" value="read">Read
+	<input type="checkbox" name="scope" value="write">Write
+	<input type="checkbox" name="scope" value="read-protected">Read-Protected
+	<input type="checkbox" name="scope" value="write-protected">Write-Protected
+	<br>
+	<br>
+</div>
+<div>
+	<a href="${url}" id="login">Login</a>
+	<br>
+	<br>
+</div>
+#{/else}

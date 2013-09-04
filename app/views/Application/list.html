@@ -1,0 +1,27 @@
+#{extends 'main.html' /}
+#{set title:'Heroku OAuth Test' /}
+<h1>List of ${objectName}</h1>
+<div>
+	<a href="/">Return to index</a>
+</div>
+<table border="1">
+	<tr>
+		#{list items:list.get(0).keys(), as: "key"}
+			<th>${key}</th>
+		#{/list}
+	</tr>
+	#{list items:list, as: "item"}
+		<tr>
+			#{list items:list.get(0).keys(), as: "key"}
+				<td>
+				#{if linker != null && linker.getName() == key}
+					<a href="${linker.getLink(item)}">${item.getAsString(key)}</a>
+				#{/if}
+				#{else}
+					${item.getAsString(key)}
+				#{/else}
+				</td>
+			#{/list}
+		</tr>
+	#{/list}
+</table>
