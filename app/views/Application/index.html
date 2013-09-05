@@ -46,8 +46,16 @@ $(function() {
 	<hr>
 	<h2>Api</h2>
 	<ul>
-		<li><a href="/application/account">Account information</a></li>
+		<li><a href="/application/account">Account</a></li>
 		<li><a href="/application/apps">Apps</a></li>
+		<li>Create app
+			<form action="/application/createApp" method="post">
+				<input name="name">
+				<input type="radio" name="region" value="US" checked>US
+				<input type="radio" name="region" value="EU">EU
+				<input type="submit" value="Execute">
+			</form>
+		</li>
 		<li><a href="/application/addons?app=flect-panda">Addons</a></li>
 		<li><a href="/application/addonservices">AddonServices</a></li>
 		<li><a href="/application/reset">Reset</a></li>

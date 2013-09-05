@@ -13,6 +13,7 @@ import jp.co.flect.heroku.platformapi.model.AbstractModel;
 import jp.co.flect.heroku.platformapi.model.Account;
 import jp.co.flect.heroku.platformapi.model.Addon;
 import jp.co.flect.heroku.platformapi.model.AddonService;
+import jp.co.flect.heroku.platformapi.model.Region;
 
 public class Application extends Controller {
 	
@@ -90,12 +91,22 @@ public class Application extends Controller {
 	
 	public static void account() throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderText(api.getAccount());
+		renderDetail("Account", api.getAccount());
 	}
 	
 	public static void apps() throws Exception {
 		PlatformApi api = getPlatformApi();
 		renderList("Apps", api.getAppList(), null);
+	}
+	
+	public static void createApp(String name, String region) throws Exception {
+		Region r = Region.valueOf(region);
+		if (name == null || r == null) {
+			badRequest();
+		}
+		PlatformApi api = getPlatformApi();
+		renderDetail("CreateApp", api.createApp(name, r));
+		
 	}
 	
 	public static void addons(String app) throws Exception {
