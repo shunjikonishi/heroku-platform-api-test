@@ -1,0 +1,63 @@
+#{extends 'main.html' /}
+#{set title:'Heroku OAuth Test' /}
+<h1>Detail of ${objectName}</h1>
+<div>
+	<a href="/">Return to index</a>
+</div>
+<hr>
+<h2>Application information</h2>
+<table border="1">
+	<tr>
+		<th>Name</th>
+		<th>Value</th>
+	</tr>
+	#{list items:item.keys(), as: "key"}
+		<tr>
+			<th>${key}</th>
+			<td>${item.getAsString(key)}</td>
+		</tr>
+	#{/list}
+</table>
+<hr>
+#{if configVars != null}
+<h2>Config vars</h2>
+<table border="1">
+	<tr>
+		<th>Name</th>
+		<th>Value</th>
+	</tr>
+	#{list items:configVars.entrySet(), as: "entry"}
+		<tr>
+			<th>${entry.getKey()}</th>
+			<td>${entry.getValue()}</td>
+		</tr>
+	#{/list}
+</table>
+<hr>
+#{/if}
+<div>
+	<h2>Set configVar</h2>
+	<form action="setConfigVar" method="POST">
+		<input type="hidden" name="app" value="${item.name}">
+		<input type="text" name="name" value="SFDC_DEVCON_2013">
+		<input type="text" name="value" value="@shunjikonishi">
+		<input type="submit" value="Set">
+	</form>
+</div>
+<hr>
+<div>
+	<h2>Rename app</h2>
+	<form action="renameApp" method="POST">
+		<input type="hidden" name="name" value="${item.name}">
+		<input type="text" name="newName" value="${item.name}-x">
+		<input type="submit" value="Rename">
+	</form>
+</div>
+<hr>
+<div>
+	<h2 style="color:red;">Delete App</h2>
+	<form action="deleteApp" method="POST">
+		<input type="hidden" name="name" value="${item.name}">
+		<input type="submit" value="Delete">
+	</form>
+</div>

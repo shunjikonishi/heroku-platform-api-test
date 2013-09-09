@@ -2,6 +2,8 @@ package controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import models.CacheManager;
 import play.Logger;
 import play.mvc.Controller;
@@ -10,6 +12,7 @@ import play.mvc.Catch;
 import jp.co.flect.heroku.platformapi.PlatformApi;
 import jp.co.flect.heroku.platformapi.PlatformApiException;
 import jp.co.flect.heroku.platformapi.model.AbstractModel;
+import jp.co.flect.heroku.platformapi.model.App;
 import jp.co.flect.heroku.platformapi.model.Account;
 import jp.co.flect.heroku.platformapi.model.Addon;
 import jp.co.flect.heroku.platformapi.model.AddonService;
@@ -96,7 +99,7 @@ public class Application extends Controller {
 	
 	public static void apps() throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderList("Apps", api.getAppList(), null);
+		renderList("Apps", api.getAppList(), new Linker("app?name=", "name"));
 	}
 	
 	public static void createApp(String name, String region) throws Exception {
@@ -105,8 +108,47 @@ public class Application extends Controller {
 			badRequest();
 		}
 		PlatformApi api = getPlatformApi();
-		renderDetail("CreateApp", api.createApp(name, r));
-		
+		App app = api.createApp(name, r);
+		app(app.getName());
+	}
+
+	public static void app(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		App item = api.getApp(name);
+		String objectName = item.getName();
+		Map<String, String> configVars = null;
+		try {
+			configVars = api.getConfigVars(name);
+		} catch (Exception e) {
+			configVars = new HashMap<String, String>();
+			configVars.put("ConfigVars get error", e.toString());
+		}
+		render(item, objectName, configVars);
+	}
+
+	public static void deleteApp(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		App item = api.deleteApp(name);
+		String objectName = item.getName();
+		renderTemplate("@app", objectName, item);
+	}
+
+	public static void renameApp(String name, String newName) throws Exception {
+		if (name == null || newName == null) {
+			badRequest();
+		}
+		PlatformApi api = getPlatformApi();
+		App app = api.renameApp(name, newName);
+		app(app.getName());
+	}
+
+	public static void setConfigVar(String app, String name, String value) throws Exception {
+		if (app == null || name == null) {
+			badRequest();
+		}
+		PlatformApi api = getPlatformApi();
+		Map<String, String> map = api.setConfigVar(app, name, value);
+		app(app);
 	}
 	
 	public static void addons(String app) throws Exception {
