@@ -4,7 +4,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Comparator;
+import java.util.Collections;
 import models.CacheManager;
+import models.ModelTester;
 import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Catch;
@@ -17,6 +20,9 @@ import jp.co.flect.heroku.platformapi.model.Account;
 import jp.co.flect.heroku.platformapi.model.Addon;
 import jp.co.flect.heroku.platformapi.model.AddonService;
 import jp.co.flect.heroku.platformapi.model.Region;
+import jp.co.flect.heroku.platformapi.model.Release;
+import jp.co.flect.heroku.platformapi.model.Collaborator;
+import jp.co.flect.heroku.platformapi.model.Dyno;
 
 public class Application extends Controller {
 	
@@ -31,20 +37,23 @@ public class Application extends Controller {
 		CacheManager cm = new CacheManager(session.getId());
 		PlatformApi api = cm.getApi();
 		if (api == null) {
-			renderText("Not logined");
+			cm.setMessage("Not logined");
+			index();
 		}
 		return api;
 	}
 	
-	private static void renderList(String objectName, List list, Linker linker) {
+	private static void renderList(String objectName, List list, Linker linker) throws Exception {
 		if (list == null || list.size() == 0) {
 			renderText(objectName + " not found");
 		}
+		new ModelTester().test(list);
 		renderTemplate("@list", objectName, list, linker);
 	}
 	
-	private static void renderDetail(String objectName, AbstractModel item) {
-		renderTemplate("@detail", objectName, item);
+	private static void renderDetail(String objectName, AbstractModel item, String appName, String addition) throws Exception {
+		new ModelTester().test(item);
+		renderTemplate("@detail", objectName, item, appName, addition);
 	}
 	
 	public static void direct() throws Exception {
@@ -94,12 +103,26 @@ public class Application extends Controller {
 	
 	public static void account() throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderDetail("Account", api.getAccount());
+		renderDetail("Account", api.getAccount(), null, null);
+	}
+	
+	public static void changePassword(String currentPassword, String newPassword) throws Exception {
+		PlatformApi api = getPlatformApi();
+		api.changePassword(currentPassword, newPassword);
+		CacheManager cm = new CacheManager(session.getId());
+		cm.setMessage("Password changed");
+		index();
 	}
 	
 	public static void apps() throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderList("Apps", api.getAppList(), new Linker("app?name=", "name"));
+		List<App> list = api.getAppList();
+		Collections.sort(list, new Comparator<App>() {
+			public int compare(App a1, App a2) {
+				return 0 - a1.getUpdatedAt().compareTo(a2.getUpdatedAt());
+			}
+		});
+		renderList("Apps", list, new Linker("app?name=", "name"));
 	}
 	
 	public static void createApp(String name, String region) throws Exception {
@@ -118,14 +141,14 @@ public class Application extends Controller {
 		String objectName = item.getName();
 		Map<String, String> configVars = null;
 		try {
-			configVars = api.getConfigVars(name);
+			configVars = api.getConfigVars(name).getMap();
 		} catch (Exception e) {
 			configVars = new HashMap<String, String>();
 			configVars.put("ConfigVars get error", e.toString());
 		}
 		render(item, objectName, configVars);
 	}
-
+	
 	public static void deleteApp(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
 		App item = api.deleteApp(name);
@@ -142,23 +165,68 @@ public class Application extends Controller {
 		app(app.getName());
 	}
 
+	public static void maintainApp(String name, boolean maintain) throws Exception {
+		if (name == null) {
+			badRequest();
+		}
+		PlatformApi api = getPlatformApi();
+		App app = api.maintainApp(name, maintain);
+		app(app.getName());
+	}
+	
+	public static void releases(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		List<Release> list = api.getReleaseList(name);
+		renderList("Releases of " + name, list, new Linker("release?name=" + name + "&version=", "version"));
+	}
+
+	public static void release(String name, String version) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Release r = api.getRelease(name, version);
+		renderDetail("Release " + version  + " of " + name, r, name, null);
+	}
+	
+	public static void collaborators(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		List<Collaborator> list = api.getCollaboratorList(name);
+		renderList("Collaborators of " + name, list, new Linker("collaborator?name=" + name + "&email=", "user.email"));
+	}
+	
+	public static void collaborator(String name, String email) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Collaborator c = api.getCollaborator(name, email);
+		renderDetail("Collaborator " + email  + " of " + name, c, name, "collaborator.html");
+	}
+	
+	public static void addCollaborator(String name, String email, boolean silent) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Collaborator c = api.addCollaborator(name, email, silent);
+		collaborators(name);
+	}
+	
+	public static void deleteCollaborator(String name, String email) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Collaborator c = api.deleteCollaborator(name, email);
+		collaborators(name);
+	}
+	
 	public static void setConfigVar(String app, String name, String value) throws Exception {
 		if (app == null || name == null) {
 			badRequest();
 		}
 		PlatformApi api = getPlatformApi();
-		Map<String, String> map = api.setConfigVar(app, name, value);
+		api.setConfigVar(app, name, value == null || value.length() == 0 ? null : value);
 		app(app);
 	}
 	
-	public static void addons(String app) throws Exception {
+	public static void addons(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderList(app + " addons", api.getAddonList(app), new Linker("addon?app=" + app + "&id=", "id"));
+		renderList(name + " addons", api.getAddonList(name), new Linker("addon?name=" + name + "&id=", "id"));
 	}
 	
-	public static void addon(String app, String id) throws Exception {
+	public static void addon(String name, String id) throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderDetail("Addon " + id, api.getAddon(app, id));
+		renderDetail("Addon " + id, api.getAddon(name, id), name, null);
 	}
 	
 	public static void addonServices() throws Exception {
@@ -168,7 +236,45 @@ public class Application extends Controller {
 	
 	public static void addonService(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderDetail("AddonService " + name, api.getAddonService(name));
+		renderDetail("AddonService " + name, api.getAddonService(name), null, null);
+	}
+	
+	public static void formations(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderList(name + " formations", api.getFormationList(name), new Linker("formation?name=" + name + "&type=", "type"));
+	}
+	
+	public static void formation(String name, String type) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail("Formation " + name, api.getFormation(name, type), name, "formation.html");
+	}
+	
+	public static void updateFormation(String name, String type, int quantity, int size) throws Exception {
+		PlatformApi api = getPlatformApi();
+		api.updateFormation(name, type, quantity, size);
+		formation(name, type);
+	}
+	
+	public static void dynos(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderList(name + " dynos", api.getDynoList(name), new Linker("dyno?name=" + name + "&dyno=", "name"));
+	}
+	
+	public static void dyno(String name, String dyno) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail("Dyno " + dyno + " of " + name, api.getDyno(name, dyno), name, "dyno.html");
+	}
+	
+	public static void deleteDyno(String name, String dyno) throws Exception {
+		PlatformApi api = getPlatformApi();
+		api.deleteDyno(name, dyno);
+		dynos(name);
+	}
+	
+	public static void runDyno(String name, String command) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Dyno dyno = api.runDyno(name, command);
+		dynos(name);
 	}
 	
 	public static class Linker {

@@ -56,7 +56,13 @@ $(function() {
 				<input type="submit" value="Execute">
 			</form>
 		</li>
-		<li><a href="/application/addons?app=flect-panda">Addons</a></li>
+		<li>Change password
+			<form action="/application/changePassword" method="post">
+				<input name="currentPassword" type="password">
+				<input name="newPassword" type="password">
+				<input type="submit" value="Change">
+			</form>
+		</li>
 		<li><a href="/application/addonservices">AddonServices</a></li>
 		<li><a href="/application/reset">Reset</a></li>
 	</ul>

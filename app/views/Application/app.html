@@ -19,6 +19,13 @@
 	#{/list}
 </table>
 <hr>
+<h2>Maintenance</h2>
+<form action="maintainApp" method="POST">
+	<input type="hidden" name="name" value="${item.name}">
+	<input type="hidden" name="maintain" value="${!item.isMaintenance()}">
+	<input type="submit" value="${ item.isMaintenance() ? "Clear maintenance" : "Be maintenance"}">
+</form>
+<hr>
 #{if configVars != null}
 <h2>Config vars</h2>
 <table border="1">
@@ -52,6 +59,36 @@
 		<input type="text" name="newName" value="${item.name}-x">
 		<input type="submit" value="Rename">
 	</form>
+</div>
+<hr>
+<div>
+	<h2>Add Collaborator</h2>
+	<form action="addCollaborator" method="POST">
+		<input type="hidden" name="name" value="${item.name}">
+		<input type="text" name="email" value="">
+		<input type="checkbox" name="silent" value="true">Silent
+		<input type="submit" value="Add">
+	</form>
+</div>
+<hr>
+<div>
+	<h2>Run command</h2>
+	<form action="runDyno" method="POST">
+		<input type="hidden" name="name" value="${item.name}">
+		Command <input type="text" name="command" value="">
+		<input type="submit" value="Run">
+	</form>
+</div>
+<hr>
+<div>
+	<h2>Detail</h2>
+	<ul>
+		<li><a href="releases?name=${item.name}">Releases</a></li>
+		<li><a href="collaborators?name=${item.name}">Collaborators</a></li>
+		<li><a href="addons?name=${item.name}">Addons</a></li>
+		<li><a href="formations?name=${item.name}">Formations</a></li>
+		<li><a href="dynos?name=${item.name}">Dynos</a></li>
+	</ul>
 </div>
 <hr>
 <div>
