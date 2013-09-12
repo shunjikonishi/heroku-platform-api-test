@@ -4,10 +4,25 @@
 <div>
 	<a href="/">Return to index</a>
 </div>
+<hr>
+#{if range.getNextRange() != null}
+<div>
+	<a href="${request.path}?name=${params.get("name")}&next=${range.getNextRange().toString()}#{if params.get("max") !=null}&max=${params.get("max")}#{/if}">Next</a>
+</div>
+#{/if}
+${java.util.Arrays.toString(range.getSortableFields())}<br>
+${range.getNextRange()}<br>
 <table border="1">
 	<tr>
 		#{list items:list.get(0).keys(), as: "key"}
-			<th>${key}</th>
+			<th>
+				#{if range.isSortableField(key)}
+					<a href="${request.path}?name=${params.get("name")}&sort=${key}&order=${params.get("order") == null ? "asc" : params.get("order").equals("asc") ? "desc" : "asc"}">${key}</a>
+				#{/if}
+				#{else}
+					${key}
+				#{/else}
+			</th>
 		#{/list}
 	</tr>
 	#{list items:list, as: "item"}

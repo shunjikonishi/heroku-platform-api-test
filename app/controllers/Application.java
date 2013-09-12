@@ -23,6 +23,7 @@ import jp.co.flect.heroku.platformapi.model.Region;
 import jp.co.flect.heroku.platformapi.model.Release;
 import jp.co.flect.heroku.platformapi.model.Collaborator;
 import jp.co.flect.heroku.platformapi.model.Dyno;
+import jp.co.flect.heroku.platformapi.model.Range;
 
 public class Application extends Controller {
 	
@@ -31,6 +32,22 @@ public class Application extends Controller {
 		CacheManager cm = new CacheManager(session.getId());
 		cm.setMessage(e.getStatus() + ", " + e.getId() + ", " + e.getMessage());
 		index();
+	}
+	
+	private static Range createRange() {
+		Range range = params.get("next") != null ? new Range(params.get("next")) : new Range();
+		int max = 20;
+		if (params.get("max") != null) {
+			max = Integer.parseInt(params.get("max"));
+		}
+		range.setMax(max);
+		if (params.get("sort") != null) {
+			String field = params.get("sort");
+			String order = params.get("order");
+			range.setSortOrder(field, !"desc".equals(order));
+		}
+System.out.println("Range: " + range);
+		return range;
 	}
 	
 	private static PlatformApi getPlatformApi() {
@@ -43,12 +60,12 @@ public class Application extends Controller {
 		return api;
 	}
 	
-	private static void renderList(String objectName, List list, Linker linker) throws Exception {
+	private static void renderList(String objectName, List list, Range range, Linker linker) throws Exception {
 		if (list == null || list.size() == 0) {
 			renderText(objectName + " not found");
 		}
 		new ModelTester().test(list);
-		renderTemplate("@list", objectName, list, linker);
+		renderTemplate("@list", objectName, list, range, linker);
 	}
 	
 	private static void renderDetail(String objectName, AbstractModel item, String appName, String addition) throws Exception {
@@ -116,13 +133,14 @@ public class Application extends Controller {
 	
 	public static void apps() throws Exception {
 		PlatformApi api = getPlatformApi();
-		List<App> list = api.getAppList();
+		Range range = createRange();
+		List<App> list = api.getAppList(range);
 		Collections.sort(list, new Comparator<App>() {
 			public int compare(App a1, App a2) {
 				return 0 - a1.getUpdatedAt().compareTo(a2.getUpdatedAt());
 			}
 		});
-		renderList("Apps", list, new Linker("app?name=", "name"));
+		renderList("Apps", list, range, new Linker("app?name=", "name"));
 	}
 	
 	public static void createApp(String name, String region) throws Exception {
@@ -176,8 +194,12 @@ public class Application extends Controller {
 	
 	public static void releases(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
-		List<Release> list = api.getReleaseList(name);
-		renderList("Releases of " + name, list, new Linker("release?name=" + name + "&version=", "version"));
+		Range range = createRange();
+		if (params.get("sort") == null) {
+			range.setSortOrder("version", false);
+		}
+		List<Release> list = api.getReleaseList(name, range);
+		renderList("Releases of " + name, list, range, new Linker("release?name=" + name + "&version=", "version"));
 	}
 
 	public static void release(String name, String version) throws Exception {
@@ -188,8 +210,9 @@ public class Application extends Controller {
 	
 	public static void collaborators(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
-		List<Collaborator> list = api.getCollaboratorList(name);
-		renderList("Collaborators of " + name, list, new Linker("collaborator?name=" + name + "&email=", "user.email"));
+		Range range = createRange();
+		List<Collaborator> list = api.getCollaboratorList(name, range);
+		renderList("Collaborators of " + name, list, range, new Linker("collaborator?name=" + name + "&email=", "user.email"));
 	}
 	
 	public static void collaborator(String name, String email) throws Exception {
@@ -221,7 +244,8 @@ public class Application extends Controller {
 	
 	public static void addons(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderList(name + " addons", api.getAddonList(name), new Linker("addon?name=" + name + "&id=", "id"));
+		Range range = createRange();
+		renderList(name + " addons", api.getAddonList(name, range), range, new Linker("addon?name=" + name + "&id=", "id"));
 	}
 	
 	public static void addon(String name, String id) throws Exception {
@@ -231,7 +255,8 @@ public class Application extends Controller {
 	
 	public static void addonServices() throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderList("AddonServices", api.getAddonServiceList(), new Linker("addonservice?name=", "name"));
+		Range range = createRange();
+		renderList("AddonServices", api.getAddonServiceList(range), range, new Linker("addonservice?name=", "name"));
 	}
 	
 	public static void addonService(String name) throws Exception {
@@ -241,7 +266,8 @@ public class Application extends Controller {
 	
 	public static void formations(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderList(name + " formations", api.getFormationList(name), new Linker("formation?name=" + name + "&type=", "type"));
+		Range range = createRange();
+		renderList(name + " formations", api.getFormationList(name, range), range, new Linker("formation?name=" + name + "&type=", "type"));
 	}
 	
 	public static void formation(String name, String type) throws Exception {
@@ -257,7 +283,8 @@ public class Application extends Controller {
 	
 	public static void dynos(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderList(name + " dynos", api.getDynoList(name), new Linker("dyno?name=" + name + "&dyno=", "name"));
+		Range range = createRange();
+		renderList(name + " dynos", api.getDynoList(name, range), range, new Linker("dyno?name=" + name + "&dyno=", "name"));
 	}
 	
 	public static void dyno(String name, String dyno) throws Exception {
@@ -293,4 +320,5 @@ public class Application extends Controller {
 			return this.prefix + model.getAsString(this.name);
 		}
 	}
+	
 }
