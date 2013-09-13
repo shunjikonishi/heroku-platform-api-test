@@ -1,0 +1,23 @@
+#{if apps != null}
+<hr>
+<div>
+	<h2>Add this plan to selected app</h2>
+	<form action="addaddon" method="post">
+		<select name="name">
+			<option value=""></option>
+			#{list items:apps, as: "app"}
+				<option value="${app.name}">${app.name}</option>
+			#{/list}
+		</select>
+		<input type="hidden" name="plan" value="${item.name}"/>
+		<input type="submit" value="Add"/>
+	</form>
+</div>
+#{/if}
+#{if message != null}
+<hr>
+<div>
+	<h2>Can not get application list</h2>
+	${message}
+</div>
+#{/if}

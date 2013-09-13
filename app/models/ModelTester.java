@@ -2,13 +2,14 @@ package models;
 
 import java.util.List;
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import jp.co.flect.heroku.platformapi.model.AbstractModel;
 
 public class ModelTester {
 	
-	public <T extends AbstractModel> void test(List<T> list) throws Exception {
+	public <T extends AbstractModel> String test(List<T> list){
 		if (list == null || list.size() == 0) {
-			return;
+			return null;
 		}
 		T model = list.get(0);
 		int size = model.keys().size();
@@ -19,32 +20,43 @@ public class ModelTester {
 				size = n;
 			}
 		}
-		test(model);
+		return test(model);
 	}
-	public void test(AbstractModel model) throws Exception {
+	public String test(AbstractModel model){
+		StringBuilder buf = new StringBuilder();
 		for (String key : model.keys()) {
-			test(model, key);
-		}
-	}
-	
-	private void test(AbstractModel model, String key) throws Exception {
-		String methodName = capitalize(key);
-System.out.println("test: " + model.getClass().getSimpleName() + ", " + key + ", " + methodName);
-		Method m = null;
-		try {
-			m = model.getClass().getDeclaredMethod(methodName);
-		} catch (NoSuchMethodException e) {
-			try {
-				m = model.getClass().getDeclaredMethod("is" + methodName.substring(3));
-			} catch (NoSuchMethodException e2) {
-				System.out.println("!!!!!! No such method: " + methodName);
-				return;
+			String str = test(model, key);
+			if (str != null) {
+				buf.append(str);
 			}
 		}
-		Object o1 = m.invoke(model);
-		Object o2 = model.get(key);
-		if (!eq(o1, o2)) {
-			System.out.println("!!!!!! Invalid method: " + methodName + ", " + o1 + ", " + o2);
+		return buf.length() == 0 ? null : buf.toString();
+	}
+	
+	private String test(AbstractModel model, String key) {
+		String methodName = capitalize(key);
+		try {
+			Method m = findMethod(model.getClass(), methodName);
+			Object o1 = m.invoke(model);
+			Object o2 = model.get(key);
+			if (!eq(o1, o2)) {
+				return "!!!!!! Invalid method: " + methodName + ", " + o1 + ", " + o2;
+			}
+		} catch (IllegalAccessException e) {
+			return e.toString();
+		} catch (InvocationTargetException e) {
+			return e.toString();
+		} catch (NoSuchMethodException e) {
+			return e.toString();
+		}
+		return null;
+	}
+	
+	private Method findMethod(Class clazz, String methodName) throws NoSuchMethodException {
+		try {
+			return clazz.getMethod(methodName);
+		} catch (NoSuchMethodException e) {
+			return clazz.getMethod("is" + methodName.substring(3));
 		}
 	}
 	

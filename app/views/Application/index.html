@@ -47,12 +47,13 @@ $(function() {
 	<h2>Api</h2>
 	<ul>
 		<li><a href="/application/account">Account</a></li>
+		<li><a href="/application/accountfeatures">Account features</a></li>
 		<li><a href="/application/apps">Apps</a></li>
 		<li>Create app
 			<form action="/application/createApp" method="post">
 				<input name="name">
-				<input type="radio" name="region" value="US" checked>US
-				<input type="radio" name="region" value="EU">EU
+				<input type="radio" name="region" value="us" checked>US
+				<input type="radio" name="region" value="eu">EU
 				<input type="submit" value="Execute">
 			</form>
 		</li>
@@ -64,6 +65,7 @@ $(function() {
 			</form>
 		</li>
 		<li><a href="/application/addonservices">AddonServices</a></li>
+		<li><a href="/application/regions">Regions</a></li>
 		<li><a href="/application/reset">Reset</a></li>
 	</ul>
 </div>

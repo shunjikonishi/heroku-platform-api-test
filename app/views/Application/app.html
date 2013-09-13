@@ -81,6 +81,14 @@
 </div>
 <hr>
 <div>
+	<h2>Restart</h2>
+	<form action="restart" method="POST">
+		<input type="hidden" name="name" value="${item.name}">
+		<input type="submit" value="Restart">
+	</form>
+</div>
+<hr>
+<div>
 	<h2>Detail</h2>
 	<ul>
 		<li><a href="releases?name=${item.name}">Releases</a></li>
@@ -88,6 +96,7 @@
 		<li><a href="addons?name=${item.name}">Addons</a></li>
 		<li><a href="formations?name=${item.name}">Formations</a></li>
 		<li><a href="dynos?name=${item.name}">Dynos</a></li>
+		<li><a href="appFeatures?name=${item.name}">AppFeatures</a></li>
 	</ul>
 </div>
 <hr>

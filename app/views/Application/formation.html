@@ -1,16 +1,25 @@
 <hr>
 <div>
-<style>
-label { display: inline-block; width:60px;}
-</style>
-<form action="updateFormation" mthod="post">
-	<input type="hidden" name="name" value="${appName}">
-	<input type="hidden" name="type" value="${item.getType()}">
-	
-	<label>Quantity</label>
-	<input type="text" name="quantity" value="${item.getQuantity()}"><br>
-	<label>Size</label>
-	<input type="text" name="size" value="${item.getSize()}"><br>
-	<input type="submit" value="Apply">
-</form>
+	<style>
+	label { display: inline-block; width:60px;}
+	</style>
+	<h2>Update scale and memory size</h2>
+	<form action="updateFormation" mthod="post">
+		<input type="hidden" name="name" value="${appName}">
+		<input type="hidden" name="type" value="${item.getType()}">
+		
+		<label>Quantity</label>
+		<input type="text" name="quantity" value="${item.getQuantity()}"><br>
+		<label>Size</label>
+		<input type="text" name="size" value="${item.getSize()}"><br>
+		<input type="submit" value="Apply">
+	</form>
+</div>
+<div>
+	<h2>Restart</h2>
+	<form action="deleteDyno" mthod="post">
+		<input type="hidden" name="name" value="${appName}">
+		<input type="hidden" name="dyno" value="${item.getType()}">
+		<input type="submit" value="Restart">
+	</form>
 </div>

@@ -1,0 +1,10 @@
+<hr>
+<div>
+	<h2>Change enabled</h2>
+	<form action="updateAppFeature" method="post">
+		<input type="hidden" name="name" value="${appName}"/>
+		<input type="hidden" name="feature" value="${item.name}"/>
+		<input type="hidden" name="enabled" value="${item.isEnabled() ? "false" : "true"}"/>
+		<input type="submit" value="${item.isEnabled() ? "Disable" : "Enable"}"/>
+	</form>
+</div>

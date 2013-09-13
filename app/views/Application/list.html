@@ -5,16 +5,27 @@
 	<a href="/">Return to index</a>
 </div>
 <hr>
+#{if message != null}
+<div style="color:red;">
+	Message: ${message}
+</div>
+<hr>
+#{/if}
 #{if range.getNextRange() != null}
 <div>
 	<a href="${request.path}?name=${params.get("name")}&next=${range.getNextRange().toString()}#{if params.get("max") !=null}&max=${params.get("max")}#{/if}">Next</a>
 </div>
 #{/if}
-${java.util.Arrays.toString(range.getSortableFields())}<br>
-${range.getNextRange()}<br>
+Accept-Ranges: ${java.util.Arrays.toString(range.getSortableFields())}<br>
+Next-Range: ${range.getNextRange()}<br>
+<hr>
+#{if list == null || list.size() == 0}
+No items found.
+#{/if}
+#{else}
 <table border="1">
 	<tr>
-		#{list items:list.get(0).keys(), as: "key"}
+		#{list items:list.getItemForHeader().keys(), as: "key"}
 			<th>
 				#{if range.isSortableField(key)}
 					<a href="${request.path}?name=${params.get("name")}&sort=${key}&order=${params.get("order") == null ? "asc" : params.get("order").equals("asc") ? "desc" : "asc"}">${key}</a>
@@ -27,7 +38,7 @@ ${range.getNextRange()}<br>
 	</tr>
 	#{list items:list, as: "item"}
 		<tr>
-			#{list items:list.get(0).keys(), as: "key"}
+			#{list items:list.getItemForHeader().keys(), as: "key"}
 				<td>
 				#{if linker != null && linker.getName() == key}
 					<a href="${linker.getLink(item)}">${item.getAsString(key)}</a>
@@ -40,3 +51,4 @@ ${range.getNextRange()}<br>
 		</tr>
 	#{/list}
 </table>
+#{/else}

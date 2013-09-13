@@ -1,0 +1,34 @@
+<hr>
+<div>
+	<h2>Links</h2>
+	<ul>
+		<li><a href="app?name=${appName}">App</a></li>
+		<li><a href="addons?name=${appName}">Addons</a></li>
+		<li><a href="addonPlan?name=${item.planName.replaceAll(":", "&plan=")}">Plan</a></li>
+	</ul>
+</div>
+<hr>
+<div>
+	<h2>Change plan</h2>
+	<form action="updateaddon" method="post">
+		<input type="hidden" name="name" value="${appName}"/>
+		<input type="hidden" name="id" value="${item.id}"/>
+		<select name="plan">
+			#{list items:plans, as: "plan"}
+				#{if !plan.getName().equals(item.getPlanName())}
+					<option value="${plan.name}">${plan.name} - ${plan.priceCents}</option>
+				#{/if}
+			#{/list}
+		</select>
+		<input type="submit" value="Update"/>
+	</form>
+</div>
+<hr>
+<div>
+	<h2>Remove this addon from App</h2>
+	<form action="deleteaddon" method="post">
+		<input type="hidden" name="name" value="${appName}"/>
+		<input type="hidden" name="id" value="${item.id}"/>
+		<input type="submit" value="Delete"/>
+	</form>
+</div>

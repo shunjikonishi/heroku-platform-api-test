@@ -1,6 +1,7 @@
 package controllers;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,9 @@ import jp.co.flect.heroku.platformapi.PlatformApi;
 import jp.co.flect.heroku.platformapi.PlatformApiException;
 import jp.co.flect.heroku.platformapi.model.AbstractModel;
 import jp.co.flect.heroku.platformapi.model.App;
+import jp.co.flect.heroku.platformapi.model.AppFeature;
 import jp.co.flect.heroku.platformapi.model.Account;
+import jp.co.flect.heroku.platformapi.model.AccountFeature;
 import jp.co.flect.heroku.platformapi.model.Addon;
 import jp.co.flect.heroku.platformapi.model.AddonService;
 import jp.co.flect.heroku.platformapi.model.Region;
@@ -24,6 +27,7 @@ import jp.co.flect.heroku.platformapi.model.Release;
 import jp.co.flect.heroku.platformapi.model.Collaborator;
 import jp.co.flect.heroku.platformapi.model.Dyno;
 import jp.co.flect.heroku.platformapi.model.Range;
+import jp.co.flect.heroku.platformapi.model.Plan;
 
 public class Application extends Controller {
 	
@@ -61,15 +65,39 @@ System.out.println("Range: " + range);
 	}
 	
 	private static void renderList(String objectName, List list, Range range, Linker linker) throws Exception {
-		if (list == null || list.size() == 0) {
+		if (list == null) {
 			renderText(objectName + " not found");
 		}
-		new ModelTester().test(list);
+		String message = new ModelTester().test(list);
+		if (message != null) {
+			renderArgs.put("message", message);
+		}
+		list = new ArrayList(list) {
+			public AbstractModel getItemForHeader() {
+				if (size() == 0) {
+					return null;
+				}
+				AbstractModel ret = (AbstractModel)get(0);
+				int size = ret.keys().size();
+				for (Object obj : this) {
+					AbstractModel m = (AbstractModel)obj;
+					int n = m.keys().size();
+					if (n > size) {
+						ret = m;
+						size = n;
+					}
+				}
+				return ret;
+			}
+		};
 		renderTemplate("@list", objectName, list, range, linker);
 	}
 	
 	private static void renderDetail(String objectName, AbstractModel item, String appName, String addition) throws Exception {
-		new ModelTester().test(item);
+		String message = new ModelTester().test(item);
+		if (message != null) {
+			renderArgs.put("message", message);
+		}
 		renderTemplate("@detail", objectName, item, appName, addition);
 	}
 	
@@ -118,6 +146,7 @@ System.out.println("Range: " + range);
 		index();
 	}
 	
+	//Account
 	public static void account() throws Exception {
 		PlatformApi api = getPlatformApi();
 		renderDetail("Account", api.getAccount(), null, null);
@@ -131,15 +160,29 @@ System.out.println("Range: " + range);
 		index();
 	}
 	
+	public static void accountFeatures() throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		List<AccountFeature> list = api.getAccountFeatureList(range);
+		renderList("AccountFeatures", list, range, new Linker("accountFeature?name=", "name"));
+	}
+	
+	public static void accountFeature(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail(name, api.getAccountFeature(name), null, "accountFeature.html");
+	}
+	
+	public static void updateAccountFeature(String name, boolean enabled) throws Exception {
+		PlatformApi api = getPlatformApi();
+		api.updateAccountFeature(name, enabled);
+		accountFeature(name);
+	}
+	
+	//App
 	public static void apps() throws Exception {
 		PlatformApi api = getPlatformApi();
 		Range range = createRange();
 		List<App> list = api.getAppList(range);
-		Collections.sort(list, new Comparator<App>() {
-			public int compare(App a1, App a2) {
-				return 0 - a1.getUpdatedAt().compareTo(a2.getUpdatedAt());
-			}
-		});
 		renderList("Apps", list, range, new Linker("app?name=", "name"));
 	}
 	
@@ -192,6 +235,27 @@ System.out.println("Range: " + range);
 		app(app.getName());
 	}
 	
+	//AppFeature
+	public static void appFeatures(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		List<AppFeature> list = api.getAppFeatureList(name, range);
+		renderList("AppFeatures", list, range, new Linker("appFeature?name=" + name + "&feature=", "name"));
+	}
+	
+	public static void appFeature(String name, String feature) throws Exception {
+		PlatformApi api = getPlatformApi();
+		AppFeature f = api.getAppFeature(name, feature);
+		renderDetail("AppFeature " + feature + " of " + name, f, name, "appFeature.html");
+	}
+	
+	public static void updateAppFeature(String name, String feature, boolean enabled) throws Exception {
+		PlatformApi api = getPlatformApi();
+		api.updateAppFeature(name, feature, enabled);
+		appFeature(name, feature);
+	}
+	
+	//Release
 	public static void releases(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
 		Range range = createRange();
@@ -208,6 +272,7 @@ System.out.println("Range: " + range);
 		renderDetail("Release " + version  + " of " + name, r, name, null);
 	}
 	
+	//Collaborator
 	public static void collaborators(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
 		Range range = createRange();
@@ -233,6 +298,7 @@ System.out.println("Range: " + range);
 		collaborators(name);
 	}
 	
+	//Config var
 	public static void setConfigVar(String app, String name, String value) throws Exception {
 		if (app == null || name == null) {
 			badRequest();
@@ -242,6 +308,7 @@ System.out.println("Range: " + range);
 		app(app);
 	}
 	
+	//Addon
 	public static void addons(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
 		Range range = createRange();
@@ -250,9 +317,36 @@ System.out.println("Range: " + range);
 	
 	public static void addon(String name, String id) throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderDetail("Addon " + id, api.getAddon(name, id), name, null);
+		Addon addon = api.getAddon(name, id);
+		String[] names = addon.getPlanName().split(":");
+		List<Plan> plans = api.getAddonPlanList(names[0]);
+		renderArgs.put("plans", plans);
+		renderDetail("Addon " + id, addon, name, "addon.html");
 	}
 	
+	public static void addAddon(String name, String plan) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Addon addon = api.addAddon(name, plan);
+		if (plan.startsWith("heroku-postgresql")) {
+			addon.setConfig("version", "9.3");
+		}
+		addon(name, addon.getId());
+	}
+	
+	public static void deleteAddon(String name, String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Addon addon = api.deleteAddon(name, id);
+		addons(name);
+	}
+	
+	public static void updateAddon(String name, String id, String plan) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Addon addon = new Addon(plan);
+		addon = api.updateAddon(name, id, addon);
+		addon(name, addon.getId());
+	}
+	
+	//AddonService
 	public static void addonServices() throws Exception {
 		PlatformApi api = getPlatformApi();
 		Range range = createRange();
@@ -261,9 +355,33 @@ System.out.println("Range: " + range);
 	
 	public static void addonService(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderDetail("AddonService " + name, api.getAddonService(name), null, null);
+		renderDetail("AddonService " + name, api.getAddonService(name), null, "addonservice.html");
 	}
 	
+	public static void addonPlans(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		renderList(name + " plan", api.getAddonPlanList(name, range), range, new Linker("addonplan?name=" + name + "&plan=", "name"));
+	}
+	
+	public static void addonPlan(String name, String plan) throws Exception {
+		PlatformApi api = getPlatformApi();
+		int idx = plan.indexOf(":");
+		if (idx != -1) {
+			plan = plan.substring(idx+1);
+		}
+		try {
+			Range range = new Range();
+			range.setSortOrder("name", true);
+			List<App> apps = api.getAppList(range);
+			renderArgs.put("apps", apps);
+		} catch (Exception e) {
+			renderArgs.put("message", e.getMessage());
+		}
+		renderDetail(name + " plan " + plan, api.getAddonPlan(name, plan), null, "addonplan.html");
+	}
+	
+	//Formation
 	public static void formations(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
 		Range range = createRange();
@@ -281,6 +399,7 @@ System.out.println("Range: " + range);
 		formation(name, type);
 	}
 	
+	//Dyno
 	public static void dynos(String name) throws Exception {
 		PlatformApi api = getPlatformApi();
 		Range range = createRange();
@@ -294,7 +413,13 @@ System.out.println("Range: " + range);
 	
 	public static void deleteDyno(String name, String dyno) throws Exception {
 		PlatformApi api = getPlatformApi();
-		api.deleteDyno(name, dyno);
+		api.killDyno(name, dyno);
+		dynos(name);
+	}
+	
+	public static void restart(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		api.restart(name);
 		dynos(name);
 	}
 	
@@ -302,6 +427,18 @@ System.out.println("Range: " + range);
 		PlatformApi api = getPlatformApi();
 		Dyno dyno = api.runDyno(name, command);
 		dynos(name);
+	}
+	
+	//Region
+	public static void regions() throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		renderList("Regions", api.getRegionList(range), range, new Linker("region?name=", "name"));
+	}
+	
+	public static void region(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail("Region " + name, api.getRegion(name), null, null);
 	}
 	
 	public static class Linker {
