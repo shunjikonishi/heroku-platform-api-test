@@ -62,7 +62,12 @@ public class ModelTester {
 	
 	private static boolean eq(Object o1, Object o2) {
 		if (o1 == null) {
-			return o2 == null;
+			return o2 == null ||
+				(o2 instanceof Number && ((Number)o2).intValue() == 0) ||
+				(o2 instanceof Boolean && ((Boolean)o2).booleanValue() == false);
+		} else if (o2 == null) {
+			return (o1 instanceof Number && ((Number)o1).intValue() == 0) ||
+				(o1 instanceof Boolean && ((Boolean)o1).booleanValue() == false);
 		} else {
 			return o1.equals(o2);
 		}

@@ -28,6 +28,7 @@ import jp.co.flect.heroku.platformapi.model.Collaborator;
 import jp.co.flect.heroku.platformapi.model.Dyno;
 import jp.co.flect.heroku.platformapi.model.Range;
 import jp.co.flect.heroku.platformapi.model.Plan;
+import jp.co.flect.heroku.platformapi.model.OAuthClient;
 
 public class Application extends Controller {
 	
@@ -61,6 +62,7 @@ System.out.println("Range: " + range);
 			cm.setMessage("Not logined");
 			index();
 		}
+System.out.println("transport: " + api.getTransport().getClass());
 		return api;
 	}
 	
@@ -102,10 +104,20 @@ System.out.println("Range: " + range);
 	}
 	
 	public static void direct() throws Exception {
+		String username = System.getenv().get("HEROKU_USERNAME");
 		String apikey = System.getenv().get("HEROKU_AUTHTOKEN");
 		
-		PlatformApi api = new PlatformApi(apikey);
+		/*
+		PlatformApi api = new PlatformApi(username, "seesaw821");
+System.out.println("auth: " + api.getAuthorization());
 		renderJSON(api.getAccount());
+		*/
+		try {
+			renderText(PlatformApi.directAccess(username, "seesaw821"));
+		} catch (Exception e) {
+			e.printStackTrace();
+			renderText(e.toString());
+		}
 	}
 	
 	public static void index() {
@@ -458,4 +470,15 @@ System.out.println("Range: " + range);
 		}
 	}
 	
+	//OAuthClient
+	public static void oauthClients() throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		renderList("OAuthClients", api.getOAuthClientList(range), range, new Linker("oauthClient?id=", "id"));
+	}
+	
+	public static void oauthClient(String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail("OAuthClient " + id, api.getOAuthClient(id), null, null);
+	}
 }
