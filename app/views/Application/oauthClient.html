@@ -1,0 +1,18 @@
+<hr>
+<div>
+<h2>Update</h2>
+<form action="updateOAuthClient" mthod="post">
+	<input type="hidden" name="id" value="${item.getId()}">
+	<input name="name" value="">
+	<input name="redirect_uri" value="">
+	<input type="submit" value="Update">
+</form>
+</div>
+<hr>
+<div>
+<h2>Delete</h2>
+<form action="deleteOAuthClient" mthod="post">
+	<input type="hidden" name="id" value="${item.getId()}">
+	<input type="submit" value="Delete">
+</form>
+</div>

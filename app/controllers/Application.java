@@ -32,10 +32,15 @@ import jp.co.flect.heroku.platformapi.model.OAuthClient;
 
 public class Application extends Controller {
 	
-	@Catch(value=PlatformApiException.class)
-	public static void handleException(PlatformApiException e) {
+	@Catch
+	public static void handleException(Exception e) {
+		String msg = e.getMessage();
+		if (e instanceof PlatformApiException) {
+			PlatformApiException pae = (PlatformApiException)e;
+			msg = pae.getStatus() + ", " + pae.getId() + ", " + pae.getMessage();
+		}
 		CacheManager cm = new CacheManager(session.getId());
-		cm.setMessage(e.getStatus() + ", " + e.getId() + ", " + e.getMessage());
+		cm.setMessage(msg);
 		index();
 	}
 	
@@ -51,7 +56,6 @@ public class Application extends Controller {
 			String order = params.get("order");
 			range.setSortOrder(field, !"desc".equals(order));
 		}
-System.out.println("Range: " + range);
 		return range;
 	}
 	
@@ -62,7 +66,6 @@ System.out.println("Range: " + range);
 			cm.setMessage("Not logined");
 			index();
 		}
-System.out.println("transport: " + api.getTransport().getClass());
 		return api;
 	}
 	
@@ -103,23 +106,6 @@ System.out.println("transport: " + api.getTransport().getClass());
 		renderTemplate("@detail", objectName, item, appName, addition);
 	}
 	
-	public static void direct() throws Exception {
-		String username = System.getenv().get("HEROKU_USERNAME");
-		String apikey = System.getenv().get("HEROKU_AUTHTOKEN");
-		
-		/*
-		PlatformApi api = new PlatformApi(username, "seesaw821");
-System.out.println("auth: " + api.getAuthorization());
-		renderJSON(api.getAccount());
-		*/
-		try {
-			renderText(PlatformApi.directAccess(username, "seesaw821"));
-		} catch (Exception e) {
-			e.printStackTrace();
-			renderText(e.toString());
-		}
-	}
-	
 	public static void index() {
 		String appId = System.getenv().get("HEROKU_OAUTH_ID");
 		String url = PlatformApi.getOAuthUrl(appId, PlatformApi.Scope.Read);
@@ -140,7 +126,7 @@ System.out.println("auth: " + api.getAuthorization());
 		if (code != null) {
 			try {
 				String secret = System.getenv().get("HEROKU_OAUTH_SECRET");
-				PlatformApi api = PlatformApi.authenticate(secret, code);
+				PlatformApi api = PlatformApi.fromOAuth(secret, code);
 				api.setDebug(true);
 				cm.setApi(api);
 			} catch (Exception e) {
@@ -149,6 +135,28 @@ System.out.println("auth: " + api.getAuthorization());
 			}
 		}
 		cm.setMessage(message);
+		index();
+	}
+	
+	public static void loginByToken(String username, String token) {
+		if (username == null || token == null) {
+			badRequest();
+		}
+		CacheManager cm = new CacheManager(session.getId());
+		PlatformApi api = PlatformApi.fromApiToken(username, token);
+		api.setDebug(true);
+		cm.setApi(api);
+		index();
+	}
+	
+	public static void loginByPassword(String username, String password) throws Exception {
+		if (username == null || password == null) {
+			badRequest();
+		}
+		CacheManager cm = new CacheManager(session.getId());
+		PlatformApi api = PlatformApi.fromPassword(username, password);
+		api.setDebug(true);
+		cm.setApi(api);
 		index();
 	}
 	
@@ -479,6 +487,33 @@ System.out.println("auth: " + api.getAuthorization());
 	
 	public static void oauthClient(String id) throws Exception {
 		PlatformApi api = getPlatformApi();
-		renderDetail("OAuthClient " + id, api.getOAuthClient(id), null, null);
+		renderDetail("OAuthClient " + id, api.getOAuthClient(id), null, "oauthClient.html");
 	}
+	
+	public static void createOAuthClient(String name, String redirect_uri) throws Exception {
+		PlatformApi api = getPlatformApi();
+		OAuthClient oc = api.addOAuthClient(name, redirect_uri);
+		oauthClient(oc.getId());
+	}
+	
+	public static void deleteOAuthClient(String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		api.deleteOAuthClient(id);
+		oauthClients();
+	}
+	
+	public static void updateOAuthClient(String id, String name, String redirect_uri) throws Exception {
+		PlatformApi api = getPlatformApi();
+		OAuthClient oc = new OAuthClient();
+		oc.setId(id);
+		if (name != null && name.length() > 0) {
+			oc.setName(name);
+		}
+		if (redirect_uri != null && redirect_uri.length() > 0) {
+			oc.setRedirectUri(redirect_uri);
+		}
+		oc = api.updateOAuthClient(oc);
+		oauthClient(oc.getId());
+	}
+	
 }

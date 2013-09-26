@@ -1,5 +1,11 @@
 #{extends 'main.html' /}
 #{set title:'Heroku OAuth Test' /}
+<style>
+input[type='checkbox'] {
+	margin-left: 10px;
+	margin-right: 5px;
+}
+</style>
 <script>
 $(function() {
 	var logined = ${api != null};
@@ -24,8 +30,15 @@ $(function() {
 		login.attr("href", url);
 		return true;
 	});
+	$("#token-form").submit(function() {
+		sessionStorage.setItem("heroku-scope", "API Token");
+	});
+	$("#pass-form").submit(function() {
+		sessionStorage.setItem("heroku-scope", "Password");
+	});
 })
 </script>
+<div class="container">
 <h1>Heroku OAuth Test</h1>
 #{if message != null}
 <div style="color:red;">
@@ -47,16 +60,6 @@ $(function() {
 	<h2>Api</h2>
 	<ul>
 		<li><a href="/application/account">Account</a></li>
-		<li><a href="/application/accountfeatures">Account features</a></li>
-		<li><a href="/application/apps">Apps</a></li>
-		<li>Create app
-			<form action="/application/createApp" method="post">
-				<input name="name">
-				<input type="radio" name="region" value="us" checked>US
-				<input type="radio" name="region" value="eu">EU
-				<input type="submit" value="Execute">
-			</form>
-		</li>
 		<li>Change password
 			<form action="/application/changePassword" method="post">
 				<input name="currentPassword" type="password">
@@ -64,28 +67,108 @@ $(function() {
 				<input type="submit" value="Change">
 			</form>
 		</li>
+		<li><a href="/application/accountfeatures">Account features</a></li>
+		<li><a href="/application/apps">Apps</a></li>
+		<li>Create app
+			<form action="/application/createApp" method="post">
+				<input name="name">
+				<input type="radio" name="region" value="us" checked>US
+				<input type="radio" name="region" value="eu">EU
+				<input type="submit" value="Create">
+			</form>
+		</li>
 		<li><a href="/application/addonservices">AddonServices</a></li>
 		<li><a href="/application/regions">Regions</a></li>
 		<li><a href="/application/oauthclients">OAuthClients</a></li>
+		<li>Create OAuthClient
+			<form action="/application/createOAuthClient" method="post">
+				<input name="name" type="name">
+				<input name="redirect_uri" type="redirect_uri">
+				<input type="submit" value="Create">
+			</form>
+		</li>
 		<li><a href="/application/reset">Reset</a></li>
 	</ul>
 </div>
 #{/if}
 #{else}
-<div>
-	<h2>Scope</h2>
-	<input type="checkbox" name="scope" value="global">Global
-	<input type="checkbox" name="scope" value="identity">Identity
-	<input type="checkbox" name="scope" value="read">Read
-	<input type="checkbox" name="scope" value="write">Write
-	<input type="checkbox" name="scope" value="read-protected">Read-Protected
-	<input type="checkbox" name="scope" value="write-protected">Write-Protected
-	<br>
-	<br>
+<hr>
+<div class="row">
+	<div class="col-md-12">
+		<h2>Login by OAuth</h2>
+		<form>
+			<fieldset>
+				<label>Scope</label>
+				<div>
+					<label>
+						<input type="checkbox" name="scope" value="global">Global
+					</label>
+					<label>
+						<input type="checkbox" name="scope" value="identity">Identity
+					</label>
+					<label>
+						<input type="checkbox" name="scope" value="read">Read
+					</label>
+					<label>
+						<input type="checkbox" name="scope" value="write">Write
+					</label>
+					<label>
+						<input type="checkbox" name="scope" value="read-protected">Read-Protected
+					</label>
+					<label>
+						<input type="checkbox" name="scope" value="write-protected">Write-Protected
+					</label>
+				</div>
+			</fieldset>
+		</form>
+		<a href="${url}" id="login" class="btn btn-primary">Login</a>
+	</div>
 </div>
-<div>
-	<a href="${url}" id="login">Login</a>
-	<br>
-	<br>
+<hr>
+<div class="row">
+	<div class="col-md-4">
+		<h2>Login by API Token</h2>
+		<form action="/application/loginByToken" method="post" class="form-horizontal" id="token-form">
+			<fieldset>
+				<div class="form-group">
+					<label for="token-username" class="col-sm-4">Username</label>
+					<div class="col-sm-8">
+						<input  id="token-username" name="username" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="token-token" class="col-sm-4">API Token</label>
+					<div class="col-sm-8">
+						<input  id="token-token" name="token" class="form-control">
+					</div>
+				</div>
+				<input id="token-submit" type="submit" value="Login" class="btn btn-primary">
+			</fieldset>
+		</form>
+	</div>
+</div>
+<hr>
+<div class="row">
+	<div class="col-md-4">
+		<h2>Login by Password</h2>
+		<form action="/application/loginByPassword" method="post" class="form-horizontal" id="pass-form">
+			<fieldset>
+				<div class="form-group">
+					<label for="pass-username" class="col-sm-4">Username</label>
+					<div class="col-sm-8">
+						<input  id="pass-username" name="username" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="pass-password" class="col-sm-4">Password</label>
+					<div class="col-sm-8">
+						<input  id="pass-password" name="password" type="password" class="form-control">
+					</div>
+				</div>
+				<input id="pass-submit" type="submit" value="Login" class="btn btn-primary">
+			</fieldset>
+		</form>
+	</div>
+</div>
 </div>
 #{/else}
