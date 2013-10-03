@@ -3,9 +3,9 @@
 <h2>Update</h2>
 <form action="updateOAuthClient" mthod="post">
 	<input type="hidden" name="id" value="${item.getId()}">
-	<input name="name" value="">
-	<input name="redirect_uri" value="">
-	<input type="submit" value="Update">
+	<input name="name" value="" placeholder="name">
+	<input name="redirect_uri" value="" placeholder="redirect_uri">
+	<input type="submit" value="Update" class="btn btn-info">
 </form>
 </div>
 <hr>
@@ -13,6 +13,6 @@
 <h2>Delete</h2>
 <form action="deleteOAuthClient" mthod="post">
 	<input type="hidden" name="id" value="${item.getId()}">
-	<input type="submit" value="Delete">
+	<input type="submit" value="Delete" class="btn btn-danger">
 </form>
 </div>

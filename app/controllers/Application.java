@@ -1,5 +1,6 @@
 package controllers;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Comparator;
 import java.util.Collections;
 import models.CacheManager;
 import models.ModelTester;
+import models.SshKey;
 import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Catch;
@@ -514,6 +516,34 @@ public class Application extends Controller {
 		}
 		oc = api.updateOAuthClient(oc);
 		oauthClient(oc.getId());
+	}
+	
+	//Key
+	public static void keys() throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		renderList("Keys", api.getKeyList(range), range, new Linker("key?id=", "id"));
+	}
+	
+	public static void key(String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail("Key " + id, api.getKey(id), null, "key.html");
+	}
+	
+	public static void generateKey() throws Exception {
+		File dir = new File("tmp");
+		String uuid = java.util.UUID.randomUUID().toString();
+System.out.println("generateKey1: " + uuid);
+		SshKey ssh = new SshKey(dir, "id_rsa", uuid);
+		int n = ssh.generate();
+System.out.println("generateKey2: " + n);
+		keys();
+	}
+	
+	public static void deleteKey(String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		api.deleteKey(id);
+		keys();
 	}
 	
 }

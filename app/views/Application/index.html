@@ -80,6 +80,7 @@ $(function() {
 		<li><a href="/application/addonservices">AddonServices</a></li>
 		<li><a href="/application/regions">Regions</a></li>
 		<li><a href="/application/oauthclients">OAuthClients</a></li>
+		<li><a href="/application/keys">Keys</a></li>
 		<li>Create OAuthClient
 			<form action="/application/createOAuthClient" method="post">
 				<input name="name" type="name">
@@ -87,8 +88,8 @@ $(function() {
 				<input type="submit" value="Create">
 			</form>
 		</li>
-		<li><a href="/application/reset">Reset</a></li>
 	</ul>
+	<a href="/application/reset" class="btn btn-warning">Reset</a>
 </div>
 #{/if}
 #{else}
