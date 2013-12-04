@@ -463,6 +463,18 @@ public class Application extends Controller {
 		renderDetail("Region " + name, api.getRegion(name), null, null);
 	}
 	
+	//Stack
+	public static void stacks() throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		renderList("Stacks", api.getStackList(range), range, new Linker("stack?name=", "name"));
+	}
+	
+	public static void stack(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail("Stack " + name, api.getStack(name), null, null);
+	}
+	
 	public static class Linker {
 		
 		private String prefix;
@@ -533,10 +545,8 @@ public class Application extends Controller {
 	public static void generateKey() throws Exception {
 		File dir = new File("tmp");
 		String uuid = java.util.UUID.randomUUID().toString();
-System.out.println("generateKey1: " + uuid);
 		SshKey ssh = new SshKey(dir, "id_rsa", uuid);
 		int n = ssh.generate();
-System.out.println("generateKey2: " + n);
 		keys();
 	}
 	
