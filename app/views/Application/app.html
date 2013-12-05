@@ -72,11 +72,52 @@
 </div>
 <hr>
 <div>
+	<h2>App transfer</h2>
+	<form action="doAppTransfer" method="POST">
+		<input type="hidden" name="name" value="${item.name}">
+		Recipient <input type="text" name="recipient" value="">
+		<input type="submit" value="Transfer">
+	</form>
+</div>
+<hr>
+<div>
+	<h2>Add domain</h2>
+	<form action="addDomain" method="POST">
+		<input type="hidden" name="name" value="${item.name}">
+		HostName <input type="text" name="hostname" value="">
+		<input type="submit" value="Add">
+	</form>
+</div>
+<hr>
+<div>
+	<h2>Add LogDrain</h2>
+	<form action="addLogDrain" method="POST">
+		<input type="hidden" name="name" value="${item.name}">
+		URL <input type="text" name="url" value="">
+		<input type="submit" value="Add">
+	</form>
+</div>
+<hr>
+<div>
 	<h2>Run command</h2>
 	<form action="runDyno" method="POST">
 		<input type="hidden" name="name" value="${item.name}">
 		Command <input type="text" name="command" value="">
 		<input type="submit" value="Run">
+	</form>
+</div>
+<hr>
+<div>
+	<h2>Create LogSession</h2>
+	<form action="logsession" method="POST">
+		<input type="hidden" name="name" value="${item.name}">
+		<table>
+			<tr><td>Dyno</td><td><input name="dyno" value=""></td></tr>
+			<tr><td>Lines</td><td><input name="lines" value="10"></td></tr>
+			<tr><td>Source</td><td><input name="source" value=""></td></tr>
+			<tr><td>Tail</td><td><input name="tail" type="checkbox" value="true"></td></tr>
+		</table>
+		<input type="submit" value="Create">
 	</form>
 </div>
 <hr>
@@ -97,6 +138,8 @@
 		<li><a href="formations?name=${item.name}">Formations</a></li>
 		<li><a href="dynos?name=${item.name}">Dynos</a></li>
 		<li><a href="appFeatures?name=${item.name}">AppFeatures</a></li>
+		<li><a href="domains?name=${item.name}">Domains</a></li>
+		<li><a href="logdrains?name=${item.name}">LogDrains</a></li>
 	</ul>
 </div>
 <hr>

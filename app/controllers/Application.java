@@ -19,6 +19,7 @@ import jp.co.flect.heroku.platformapi.PlatformApi;
 import jp.co.flect.heroku.platformapi.PlatformApiException;
 import jp.co.flect.heroku.platformapi.model.AbstractModel;
 import jp.co.flect.heroku.platformapi.model.App;
+import jp.co.flect.heroku.platformapi.model.AppTransfer;
 import jp.co.flect.heroku.platformapi.model.AppFeature;
 import jp.co.flect.heroku.platformapi.model.Account;
 import jp.co.flect.heroku.platformapi.model.AccountFeature;
@@ -27,9 +28,12 @@ import jp.co.flect.heroku.platformapi.model.AddonService;
 import jp.co.flect.heroku.platformapi.model.Region;
 import jp.co.flect.heroku.platformapi.model.Release;
 import jp.co.flect.heroku.platformapi.model.Collaborator;
+import jp.co.flect.heroku.platformapi.model.Domain;
 import jp.co.flect.heroku.platformapi.model.Dyno;
 import jp.co.flect.heroku.platformapi.model.Range;
 import jp.co.flect.heroku.platformapi.model.Plan;
+import jp.co.flect.heroku.platformapi.model.LogDrain;
+import jp.co.flect.heroku.platformapi.model.LogSession;
 import jp.co.flect.heroku.platformapi.model.OAuthClient;
 
 public class Application extends Controller {
@@ -145,7 +149,7 @@ public class Application extends Controller {
 			badRequest();
 		}
 		CacheManager cm = new CacheManager(session.getId());
-		PlatformApi api = PlatformApi.fromApiToken(username, token);
+		PlatformApi api = PlatformApi.fromApiKey(username, token);
 		api.setDebug(true);
 		cm.setApi(api);
 		index();
@@ -162,10 +166,27 @@ public class Application extends Controller {
 		index();
 	}
 	
+	public static void loginByRefreshToken(String token) throws Exception {
+		if (token == null) {
+			badRequest();
+		}
+		CacheManager cm = new CacheManager(session.getId());
+		String secret = System.getenv().get("HEROKU_OAUTH_SECRET");
+		PlatformApi api = PlatformApi.fromRefreshToken(secret, token);
+		api.setDebug(true);
+		cm.setApi(api);
+		index();
+	}
+	
 	public static void reset() {
 		CacheManager cm = new CacheManager(session.getId());
 		cm.setApi(null);
 		index();
+	}
+	
+	public static void refreshToken() {
+		PlatformApi api = getPlatformApi();
+		renderText(api.getRefreshToken());
 	}
 	
 	//Account
@@ -556,4 +577,98 @@ public class Application extends Controller {
 		keys();
 	}
 	
+	//AppTransfer
+	public static void appTransfers() throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		renderList("AppTransfers", api.getAppTransferList(range), range, new Linker("apptransfer?id=", "id"));
+	}
+	
+	public static void appTransfer(String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail("AppTransfer " + id, api.getAppTransfer(id), null, "apptransfer.html");
+	}
+	
+	public static void doAppTransfer(String name, String recipient) throws Exception {
+		PlatformApi api = getPlatformApi();
+		AppTransfer at = api.createAppTransfer(name, recipient);
+		appTransfer(at.getId());
+	}
+	
+	public static void updateAppTransfer(String id, String state) throws Exception {
+		PlatformApi api = getPlatformApi();
+		AppTransfer at = api.updateAppTransfer(id, AppTransfer.strToState(state));
+		appTransfer(at.getId());
+	}
+	
+	public static void deleteAppTransfer(String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		AppTransfer at = api.deleteAppTransfer(id);
+		appTransfers();
+	}
+	
+	//Domain
+	public static void domains(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		renderList("Domains", api.getDomainList(name, range), range, new Linker("domain?name=" + name + "&id=", "id"));
+	}
+	
+	public static void domain(String name, String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail("Domain " + id, api.getDomain(name, id), name, "domain.html");
+	}
+	
+	public static void addDomain(String name, String hostname) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Domain domain = api.addDomain(name, hostname);
+		domain(name, domain.getId());
+	}
+	
+	public static void deleteDomain(String name, String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Domain domain = api.deleteDomain(name, id);
+		domains(name);
+	}
+	
+	//LogDrain
+	public static void logDrains(String name) throws Exception {
+		PlatformApi api = getPlatformApi();
+		Range range = createRange();
+		renderList("LogDrains", api.getLogDrainList(name, range), range, new Linker("logDrain?name=" + name + "&id=", "id"));
+	}
+	
+	public static void logDrain(String name, String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		renderDetail("logDrain " + id, api.getLogDrain(name, id), name, "logDrain.html");
+	}
+	
+	public static void addLogDrain(String name, String url) throws Exception {
+		PlatformApi api = getPlatformApi();
+		LogDrain LogDrain = api.addLogDrain(name, url);
+		logDrain(name, LogDrain.getId());
+	}
+	
+	public static void deleteLogDrain(String name, String id) throws Exception {
+		PlatformApi api = getPlatformApi();
+		LogDrain LogDrain = api.deleteLogDrain(name, id);
+		logDrains(name);
+	}
+	
+	//LogSession
+	
+	public static void logSession(String name, String dyno, String source, int lines, boolean tail) throws Exception {
+		PlatformApi api = getPlatformApi();
+		LogSession option = new LogSession();
+		if (dyno != null && dyno.length() > 0) {
+			option.setDyno(dyno);
+		}
+		if (source != null && source.length() > 0) {
+			option.setSource(source);
+		}
+		option.setLines(lines);
+		option.setTail(tail);
+		LogSession ls = api.createLogSession(name, option);
+		renderDetail("LogSession " + ls.getId(), ls, name, null);
+	}
 }

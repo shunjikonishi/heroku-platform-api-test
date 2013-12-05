@@ -36,6 +36,9 @@ $(function() {
 	$("#pass-form").submit(function() {
 		sessionStorage.setItem("heroku-scope", "Password");
 	});
+	$("#refresh-form").submit(function() {
+		sessionStorage.setItem("heroku-scope", "RefreshToken");
+	});
 })
 </script>
 <div class="container">
@@ -59,6 +62,7 @@ $(function() {
 	<hr>
 	<h2>Api</h2>
 	<ul>
+		<li><a href="/application/refreshToken">Show RefreshToken</a></li>
 		<li><a href="/application/account">Account</a></li>
 		<li>Change password
 			<form action="/application/changePassword" method="post">
@@ -82,6 +86,7 @@ $(function() {
 		<li><a href="/application/stacks">Stacks</a></li>
 		<li><a href="/application/oauthclients">OAuthClients</a></li>
 		<li><a href="/application/keys">Keys</a></li>
+		<li><a href="/application/apptransfers">AppTransfers</a></li>
 		<li>Create OAuthClient
 			<form action="/application/createOAuthClient" method="post">
 				<input name="name" type="name">
@@ -129,7 +134,7 @@ $(function() {
 <hr>
 <div class="row">
 	<div class="col-md-4">
-		<h2>Login by API Token</h2>
+		<h2>Login by API Key</h2>
 		<form action="/application/loginByToken" method="post" class="form-horizontal" id="token-form">
 			<fieldset>
 				<div class="form-group">
@@ -139,7 +144,7 @@ $(function() {
 					</div>
 				</div>
 				<div class="form-group">
-					<label for="token-token" class="col-sm-4">API Token</label>
+					<label for="token-token" class="col-sm-4">API Key</label>
 					<div class="col-sm-8">
 						<input  id="token-token" name="token" class="form-control">
 					</div>
@@ -168,6 +173,23 @@ $(function() {
 					</div>
 				</div>
 				<input id="pass-submit" type="submit" value="Login" class="btn btn-primary">
+			</fieldset>
+		</form>
+	</div>
+</div>
+<hr>
+<div class="row">
+	<div class="col-md-4">
+		<h2>Login by RefreshToken</h2>
+		<form action="/application/loginByRefreshToken" method="post" class="form-horizontal" id="refresh-form">
+			<fieldset>
+				<div class="form-group">
+					<label for="refresh-token" class="col-sm-4">RefreshToken</label>
+					<div class="col-sm-8">
+						<input  id="refresh-token" name="token" class="form-control">
+					</div>
+				</div>
+				<input id="refresh-submit" type="submit" value="Login" class="btn btn-primary">
 			</fieldset>
 		</form>
 	</div>

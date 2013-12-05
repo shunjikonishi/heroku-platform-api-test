@@ -38,6 +38,9 @@ public class ModelTester {
 		try {
 			Method m = findMethod(model.getClass(), methodName);
 			Object o1 = m.invoke(model);
+			if (o1 instanceof Enum) {
+				o1 = o1.toString();
+			}
 			Object o2 = model.get(key);
 			if (!eq(o1, o2)) {
 				return "!!!!!! Invalid method: " + methodName + ", " + o1 + ", " + o2;
@@ -93,6 +96,8 @@ public class ModelTester {
 					break;
 			}
 		}
-		return buf.toString();
+		String ret = buf.toString();
+		ret = ret.replaceAll("name", "Name");
+		return ret;
 	}
 }
